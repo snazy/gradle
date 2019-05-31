@@ -55,6 +55,7 @@ import java.nio.file.Paths;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.EnumSet;
 import java.util.List;
+import java.util.Optional;
 
 public class DirectorySnapshotter {
     private final FileHasher hasher;
@@ -252,7 +253,8 @@ public class DirectorySnapshotter {
 
         @Override
         public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) {
-            String name = stringInterner.intern(dir.getFileName().toString());
+            String fileName = Optional.ofNullable(dir.getFileName()).orElse(dir).toString();
+            String name = stringInterner.intern(fileName);
             if (builder.isRoot() || isAllowed(dir, name, true, attrs, builder.getRelativePath())) {
                 builder.preVisitDirectory(internedAbsolutePath(dir), name);
                 return FileVisitResult.CONTINUE;
