@@ -112,6 +112,21 @@ See the User Manual section on the “[Feature Lifecycle](userguide/feature_life
 
 The following are the features that have been promoted in this Gradle release.
 
+## Improved handling of ZIP archives on classpaths
+
+Compile classpath and runtime classpath analysis will now detect the most common zip extension instead of only supporting `.jar`.
+It will inspect nested zip archives as well instead of treating them as blobs. This improves the likelihood of cache hits for tasks
+that take such nested zips as an input, e.g. when testing applications packaged as a fat jar.
+
+The ZIP analysis now also avoids unpacking entries that are irrelevant, e.g. resource files on a compile classpath. 
+This improves performance for projects with a large amount of resource files.
+
+### Update to the Scala Zinc compiler
+
+The Scala Zinc compiler has been upgraded to version 1.2.5, which only supports Scala 2.10+, meaning that Gradle no longer supports building for Scala 2.9.
+This fixes some Scala incremental compilation bugs and is reported as significantly improving performance.
+If you used to override the Zinc compiler version, be aware that the minimal version is now 1.2.0.
+
 <!--
 ### Example promoted
 -->

@@ -22,6 +22,7 @@ import org.gradle.api.internal.tasks.scala.NormalizingScalaCompiler;
 import org.gradle.api.internal.tasks.scala.ScalaJavaJointCompileSpec;
 import org.gradle.api.internal.tasks.scala.ZincScalaCompiler;
 import org.gradle.initialization.ClassLoaderRegistry;
+import org.gradle.api.internal.tasks.scala.ZincScalaCompilerFacade;
 import org.gradle.internal.logging.text.DiagnosticsVisitor;
 import org.gradle.language.base.internal.compile.CompileSpec;
 import org.gradle.language.base.internal.compile.Compiler;
@@ -33,9 +34,8 @@ import java.io.File;
 import java.util.Set;
 
 public class DefaultScalaToolProvider implements ToolProvider {
-    public static final String DEFAULT_ZINC_VERSION = "0.3.15";
+    public static final String DEFAULT_ZINC_VERSION = "1.2.5";
 
-    private final File gradleUserHomeDir;
     private final File daemonWorkingDir;
     private final WorkerDaemonFactory workerDaemonFactory;
     private final Set<File> resolvedScalaClasspath;
@@ -44,8 +44,7 @@ public class DefaultScalaToolProvider implements ToolProvider {
     private final ClassPathRegistry classPathRegistry;
     private final ClassLoaderRegistry classLoaderRegistry;
 
-    public DefaultScalaToolProvider(File gradleUserHomeDir, File daemonWorkingDir, WorkerDaemonFactory workerDaemonFactory, JavaForkOptionsFactory forkOptionsFactory, ClassPathRegistry classPathRegistry, Set<File> resolvedScalaClasspath, Set<File> resolvedZincClasspath, ClassLoaderRegistry classLoaderRegistry) {
-        this.gradleUserHomeDir = gradleUserHomeDir;
+    public DefaultScalaToolProvider(File daemonWorkingDir, WorkerDaemonFactory workerDaemonFactory, JavaForkOptionsFactory forkOptionsFactory, ClassPathRegistry classPathRegistry, Set<File> resolvedScalaClasspath, Set<File> resolvedZincClasspath, ClassLoaderRegistry classLoaderRegistry) {
         this.daemonWorkingDir = daemonWorkingDir;
         this.workerDaemonFactory = workerDaemonFactory;
         this.forkOptionsFactory = forkOptionsFactory;
@@ -62,8 +61,8 @@ public class DefaultScalaToolProvider implements ToolProvider {
             return (Compiler<T>) new NormalizingScalaCompiler(
                     new DaemonScalaCompiler<ScalaJavaJointCompileSpec>(
                             daemonWorkingDir,
-                            ZincScalaCompiler.class,
-                            new Object[] {resolvedScalaClasspath, resolvedZincClasspath, gradleUserHomeDir},
+                            ZincScalaCompilerFacade.class,
+                            new Object[] {resolvedScalaClasspath, resolvedZincClasspath},
                             workerDaemonFactory,
                             resolvedZincClasspath,
                             forkOptionsFactory,

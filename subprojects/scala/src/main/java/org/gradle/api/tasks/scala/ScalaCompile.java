@@ -93,7 +93,7 @@ public class ScalaCompile extends AbstractScalaCompile {
             ClassLoaderRegistry classLoaderRegistry = getServices().get(ClassLoaderRegistry.class);
             ScalaCompilerFactory scalaCompilerFactory = new ScalaCompilerFactory(
                 getServices().get(WorkerDirectoryProvider.class).getWorkingDirectory(), workerDaemonFactory, getScalaClasspath(),
-                getZincClasspath(), getProject().getGradle().getGradleUserHomeDir(), forkOptionsFactory, classPathRegistry, classLoaderRegistry);
+                getZincClasspath(), forkOptionsFactory, classPathRegistry, classLoaderRegistry);
             compiler = scalaCompilerFactory.newCompiler(spec);
         }
         return compiler;

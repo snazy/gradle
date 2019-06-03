@@ -30,12 +30,11 @@ class DefaultScalaToolProviderTest extends Specification {
     WorkerDaemonFactory workerDaemonFactory = Mock()
     Set<File> scalacClasspath = Mock()
     Set<File> zincClasspath = Mock()
-    File gradleUserHome = Mock()
     File rootProjectDir = Mock()
 
     def "newCompiler provides decent error for unsupported CompileSpec"() {
         setup:
-        DefaultScalaToolProvider scalaToolProvider = new DefaultScalaToolProvider(gradleUserHome, rootProjectDir, workerDaemonFactory, forkOptionsFactory, classPathRegistry, scalacClasspath, zincClasspath, classLoaderRegistry)
+        DefaultScalaToolProvider scalaToolProvider = new DefaultScalaToolProvider(rootProjectDir, workerDaemonFactory, forkOptionsFactory, classPathRegistry, scalacClasspath, zincClasspath, classLoaderRegistry)
 
         when:
         scalaToolProvider.newCompiler(UnknownCompileSpec.class)
