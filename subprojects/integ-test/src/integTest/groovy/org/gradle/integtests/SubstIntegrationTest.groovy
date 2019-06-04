@@ -16,43 +16,59 @@
 package org.gradle.integtests
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
+// TODO
 @Requires(TestPrecondition.WINDOWS)
 class SubstIntegrationTest extends AbstractIntegrationSpec {
     final SUBST_TARGET_DRIVE = 'X:'.toUpperCase()
 
-    def setup() {
-        assert !File.listRoots().any { "${it}".toUpperCase().startsWith(SUBST_TARGET_DRIVE) }
-        ['subst', SUBST_TARGET_DRIVE, temporaryFolder.root.absolutePath].execute().waitForProcessOutput()
-    }
-
-    def cleanup() {
-        ['subst', '/d', SUBST_TARGET_DRIVE].execute()
-    }
-
     def "up to date check works from filesystem's root"() {
-        def substRoot = temporaryFolder.createDir("root").createDir()
-        substRoot.file("input.txt") << "content"
+        def substRoot = getRoot()
 
-        when:
-        buildScript """
-            class CustomTask extends DefaultTask {
+        def (inputFileName, outputFileName) = ["input.txt", "output.txt"]
+        def input = substRoot.file(inputFileName)
+        input << 'content'
+        def output = substRoot.file(outputFileName)
+
+        def taskName = 'inputFromFilesystemRoot'
+        def script = /*language=Gradle*/ """
+            class InputToOutputDelegatingAction extends DefaultTask {
                 @InputFile File input
                 @OutputFile File output
                 
                 @TaskAction def execute() {
-                    outputFile.text = inputFile.text
+                    output.text = input.text
                 }
             }
             
-            task custom(type: CustomTask) {
-                input = file(${SUBST_TARGET_DRIVE})
+            task ${taskName}(type: InputToOutputDelegatingAction) {
+                input = file("${SUBST_TARGET_DRIVE}\\\\${inputFileName}") // TODO slash?
+                output = file("${SUBST_TARGET_DRIVE}\\\\${outputFileName}")
             }
         """
+        when:
+        buildScript script
 
         then:
-        succeeds 'custom'
+        succeeds taskName
+        outputContains taskName
+        output.text == input.text
+
+        cleanup:
+        cleanupSubst()
+    }
+
+    private TestFile getRoot() {
+        assert !File.listRoots().any { "${it}".toUpperCase().startsWith(SUBST_TARGET_DRIVE) }: "Drive ${SUBST_TARGET_DRIVE} already in use!"
+        def substRoot = temporaryFolder.createDir("root").createDir()
+        ['subst', SUBST_TARGET_DRIVE, substRoot].execute().waitForProcessOutput()
+        substRoot
+    }
+
+    private Process cleanupSubst() {
+        ['subst', '/d', SUBST_TARGET_DRIVE].execute()
     }
 }

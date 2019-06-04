@@ -253,7 +253,7 @@ public class DirectorySnapshotter {
 
         @Override
         public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) {
-            String fileName = Optional.ofNullable(dir.getFileName()).orElse(dir).toString();
+            String fileName = getFilename(dir);
             String name = stringInterner.intern(fileName);
             if (builder.isRoot() || isAllowed(dir, name, true, attrs, builder.getRelativePath())) {
                 builder.preVisitDirectory(internedAbsolutePath(dir), name);
@@ -261,6 +261,13 @@ public class DirectorySnapshotter {
             } else {
                 return FileVisitResult.SKIP_SUBTREE;
             }
+        }
+
+        private String getFilename(Path dir) {
+            return Optional.ofNullable(dir.getFileName())
+                .orElse(dir)
+                .toString()
+                .replace(File.separator, "");
         }
 
         @Override

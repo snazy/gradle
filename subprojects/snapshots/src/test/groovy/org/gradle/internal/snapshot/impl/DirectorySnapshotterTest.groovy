@@ -98,7 +98,7 @@ class DirectorySnapshotterTest extends Specification {
 
         then:
         snapshot.absolutePath == fileSystemRoot
-        snapshot.name == fileSystemRoot
+        snapshot.name == fileSystemRoot[0..<-1]
     }
 
     def "should snapshot with filters"() {
