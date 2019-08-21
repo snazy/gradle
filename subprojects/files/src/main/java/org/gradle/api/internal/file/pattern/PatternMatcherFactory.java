@@ -19,6 +19,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.CharMatcher;
 import com.google.common.base.Splitter;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class PatternMatcherFactory {
@@ -27,14 +28,24 @@ public class PatternMatcherFactory {
     private static final Splitter PATH_SPLITTER = Splitter.on(CharMatcher.anyOf("\\/")).omitEmptyStrings();
 
     public static PatternMatcher getPatternsMatcher(boolean partialMatchDirs, boolean caseSensitive, Iterable<String> patterns) {
-        PatternMatcher matcher = PatternMatcher.MATCH_ALL;
+        final List<PatternMatcher> patternMatchers = new ArrayList<PatternMatcher>();
         for (String pattern : patterns) {
-            PatternMatcher patternMatcher = getPatternMatcher(partialMatchDirs, caseSensitive, pattern);
-            matcher = matcher == PatternMatcher.MATCH_ALL
-                ? patternMatcher
-                : matcher.or(patternMatcher);
+            patternMatchers.add(getPatternMatcher(partialMatchDirs, caseSensitive, pattern));
         }
-        return matcher;
+        if (patternMatchers.isEmpty()) {
+            return PatternMatcher.MATCH_ALL;
+        }
+        return new PatternMatcher() {
+            @Override
+            public boolean test(String[] segments, boolean isFile) {
+                for (PatternMatcher matcher : patternMatchers) {
+                    if (matcher.test(segments, isFile)) {
+                        return true;
+                    }
+                }
+                return false;
+            }
+        };
     }
 
     public static PatternMatcher getPatternMatcher(boolean partialMatchDirs, boolean caseSensitive, String pattern) {
